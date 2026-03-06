@@ -33,7 +33,7 @@ const (
 func main() {
 	outputPath := flag.String("o", "", "output file (default: append to existing file)")
 	trimSpace := flag.Bool("trim", false, "trim spaces when comparing")
-	quiet := flag.Bool("q", false, "quiet: no stats")
+	quiet := flag.Bool("q", false, "quiet: no output (only exit code)")
 	flag.Parse()
 
 	args := flag.Args()
@@ -46,14 +46,10 @@ func main() {
 		*outputPath = existingPath
 	}
 
-	stats, err := run(existingPath, *outputPath, *trimSpace, *quiet)
+	_, err := run(existingPath, *outputPath, *trimSpace, *quiet)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gnew: %v\n", err)
 		os.Exit(1)
-	}
-	if !*quiet {
-		fmt.Fprintf(os.Stderr, "existing: %d lines | input: %d | new: %d | written: %d\n",
-			stats.Existing, stats.Input, stats.New, stats.Written)
 	}
 }
 
@@ -73,6 +69,7 @@ type spanCompact struct {
 }
 
 func run(existingPath, outputPath string, trim, quiet bool) (*stats, error) {
+	showInserted := !quiet
 	s := &stats{}
 
 	existingBuf, err := os.ReadFile(existingPath)
@@ -88,9 +85,6 @@ func run(existingPath, outputPath string, trim, quiet bool) (*stats, error) {
 	if existingBuf != nil {
 		n := buildSetParallel(existingBuf, trim, set)
 		s.Existing = int64(n)
-		if !quiet {
-			fmt.Fprintf(os.Stderr, "loaded %d existing lines (%.1f MiB)\n", n, float64(len(existingBuf))/(1<<20))
-		}
 	}
 
 	out, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
@@ -115,7 +109,11 @@ func run(existingPath, outputPath string, trim, quiet bool) (*stats, error) {
 		s.Input++
 		if set.addIfNew(line) {
 			s.New++
-			w.Write(line)
+			if showInserted {
+				os.Stderr.Write(line)
+				os.Stderr.Write([]byte{'\n'})
+			}
+			_, _ = w.Write(line)
 			w.WriteByte('\n')
 			s.Written++
 		}

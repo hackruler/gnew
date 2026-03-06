@@ -29,7 +29,7 @@ cat new_lines.txt | ./gnew existing.txt -o only_new.txt
 # Trim spaces when comparing (e.g. " foo " == "foo")
 cat new_lines.txt | ./gnew existing.txt -trim
 
-# Quiet (only exit code; no stats to stderr)
+# Quiet: no output (only exit code)
 cat new_lines.txt | ./gnew existing.txt -q
 ```
 
@@ -46,11 +46,8 @@ go build -o gnew .
 | `existing-file` | Path to existing file (required). If missing, treated as empty. |
 | `-o`     | Output file. Default: same as existing file (append). |
 | `-trim`  | Trim spaces when comparing lines. |
-| `-q`     | Quiet: no stats on stderr. |
+| `-q`     | Quiet: no output (only exit code). |
 
-## Stats (stderr)
+## Output
 
-- **existing**: Lines already in the file.
-- **input**: Lines read from stdin.
-- **new**: Lines that were not in the file.
-- **written**: Lines written to output.
+By default, gnew prints only the **newly added lines** to stderr (one per line). Use `-q` to suppress all output.
