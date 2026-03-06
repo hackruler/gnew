@@ -2,6 +2,14 @@
 
 Append only **new** lines to a file (like `anew`), built for **24M+ line** files with minimal memory and maximum speed.
 
+## Install
+
+```bash
+go install github.com/hackruler/gnew@latest
+```
+
+Ensure `$GOPATH/bin` or `$HOME/go/bin` is in your `PATH`.
+
 ## Why
 
 - **Zero-copy for existing file**: The existing file is loaded once; lines are stored as (start,end) spans into that buffer. No 24M string allocations.
