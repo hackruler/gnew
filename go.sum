@@ -1,2 +1,6 @@
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
+github.com/zeebo/wyhash v0.0.1 h1:VEByEMek3iHhV65CgG3SRAWVtg/6TcmbEKj5jPOKDrc=
+github.com/zeebo/wyhash v0.0.1/go.mod h1:Ti+OwfNtM5AZiYAL0kOPIfliqDP5c0VtOnnMAqzuuZk=
+go.dw1.io/rapidhash v0.3.0 h1:FEEIx1NXcq2aoZTPTcvNPv/5PGh/yQRf7oIIzOL+Lg4=
+go.dw1.io/rapidhash v0.3.0/go.mod h1:ac/wiQXgB7YiRwsFjNKYhSq8xklWR0i/59LKohVYUAk=

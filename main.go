@@ -18,6 +18,8 @@ import (
 	"os"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/zeebo/wyhash"
+	"go.dw1.io/rapidhash"
 )
 
 const (
@@ -29,11 +31,12 @@ func main() {
 	outputPath := flag.String("o", "", "output file (default: append to existing file)")
 	trimSpace := flag.Bool("trim", false, "trim spaces when comparing")
 	quiet := flag.Bool("q", false, "quiet: no output (only exit code)")
+	hashAlgo := flag.String("hash", "rapidhash", "hash algorithm: rapidhash|wyhash|xxhash")
 	flag.Parse()
 
 	args := flag.Args()
 	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: gnew <existing-file> [-o out] [-trim] [-q]\n")
+		fmt.Fprintf(os.Stderr, "Usage: gnew <existing-file> [-o out] [-trim] [-q] [-hash rapidhash|wyhash|xxhash]\n")
 		os.Exit(1)
 	}
 	existingPath := args[0]
@@ -41,18 +44,26 @@ func main() {
 		*outputPath = existingPath
 	}
 
-	_, err := run(existingPath, *outputPath, *trimSpace, *quiet)
+	hasher, err := getHasher(*hashAlgo)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "gnew: %v\n", err)
+		os.Exit(1)
+	}
+
+	_, err = run(existingPath, *outputPath, *trimSpace, *quiet, hasher)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "gnew: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(existingPath, outputPath string, trim, quiet bool) (int64, error) {
+type hashFunc func([]byte) uint64
+
+func run(existingPath, outputPath string, trim, quiet bool, hash hashFunc) (int64, error) {
 	showInserted := !quiet
 	set := newHashSet(1024)
 
-	if err := loadExistingHashes(existingPath, trim, set); err != nil {
+	if err := loadExistingHashes(existingPath, trim, set, hash); err != nil {
 		return 0, err
 	}
 
@@ -77,7 +88,7 @@ func run(existingPath, outputPath string, trim, quiet bool) (int64, error) {
 		if len(line) == 0 {
 			continue
 		}
-		if set.AddHash(hashLine(line)) {
+		if set.AddHash(hashLine(line, hash)) {
 			if showInserted {
 				_, _ = os.Stderr.Write(line)
 				_, _ = os.Stderr.Write([]byte{'\n'})
@@ -97,7 +108,7 @@ func run(existingPath, outputPath string, trim, quiet bool) (int64, error) {
 	return written, nil
 }
 
-func loadExistingHashes(path string, trim bool, set *hashSet) error {
+func loadExistingHashes(path string, trim bool, set *hashSet, hash hashFunc) error {
 	f, err := os.Open(path)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -117,7 +128,7 @@ func loadExistingHashes(path string, trim bool, set *hashSet) error {
 		if len(line) == 0 {
 			continue
 		}
-		set.AddHash(hashLine(line))
+		set.AddHash(hashLine(line, hash))
 	}
 	if err := sc.Err(); err != nil {
 		return err
@@ -125,12 +136,25 @@ func loadExistingHashes(path string, trim bool, set *hashSet) error {
 	return nil
 }
 
-func hashLine(line []byte) uint64 {
-	h := xxhash.Sum64(line)
+func hashLine(line []byte, hash hashFunc) uint64 {
+	h := hash(line)
 	if h == 0 {
 		return 1 // keep zero as empty-slot sentinel
 	}
 	return h
+}
+
+func getHasher(name string) (hashFunc, error) {
+	switch name {
+	case "rapidhash":
+		return rapidhash.Hash, nil
+	case "wyhash":
+		return func(b []byte) uint64 { return wyhash.Hash(b, 0) }, nil
+	case "xxhash":
+		return xxhash.Sum64, nil
+	default:
+		return nil, fmt.Errorf("invalid -hash value %q (use rapidhash|wyhash|xxhash)", name)
+	}
 }
 
 type hashSet struct {
