@@ -37,6 +37,7 @@ cat new_lines.txt | ./gnew existing.txt -trim
 cat new_lines.txt | ./gnew existing.txt -hash rapidhash
 cat new_lines.txt | ./gnew existing.txt -hash wyhash
 cat new_lines.txt | ./gnew existing.txt -hash xxhash
+cat new_lines.txt | ./gnew existing.txt -hash xxh3
 
 # Quiet: no output (only exit code)
 cat new_lines.txt | ./gnew existing.txt -q
@@ -55,7 +56,7 @@ go build -o gnew .
 | `existing-file` | Path to existing file (required). If missing, treated as empty. |
 | `-o`     | Output file. Default: same as existing file (append). |
 | `-trim`  | Trim spaces when comparing lines. |
-| `-hash`  | Hash algorithm: `rapidhash`, `wyhash`, or `xxhash` (default: `rapidhash`). |
+| `-hash`  | Hash algorithm: `rapidhash`, `wyhash`, `xxhash`, or `xxh3` (default: `rapidhash`). |
 | `-q`     | Quiet: no output (only exit code). |
 
 ## Output

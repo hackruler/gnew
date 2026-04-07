@@ -18,6 +18,7 @@ import (
 	"os"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/zeebo/xxh3"
 	"github.com/zeebo/wyhash"
 	"go.dw1.io/rapidhash"
 )
@@ -31,12 +32,12 @@ func main() {
 	outputPath := flag.String("o", "", "output file (default: append to existing file)")
 	trimSpace := flag.Bool("trim", false, "trim spaces when comparing")
 	quiet := flag.Bool("q", false, "quiet: no output (only exit code)")
-	hashAlgo := flag.String("hash", "rapidhash", "hash algorithm: rapidhash|wyhash|xxhash")
+	hashAlgo := flag.String("hash", "rapidhash", "hash algorithm: rapidhash|wyhash|xxhash|xxh3")
 	flag.Parse()
 
 	args := flag.Args()
 	if len(args) < 1 {
-		fmt.Fprintf(os.Stderr, "Usage: gnew <existing-file> [-o out] [-trim] [-q] [-hash rapidhash|wyhash|xxhash]\n")
+		fmt.Fprintf(os.Stderr, "Usage: gnew <existing-file> [-o out] [-trim] [-q] [-hash rapidhash|wyhash|xxhash|xxh3]\n")
 		os.Exit(1)
 	}
 	existingPath := args[0]
@@ -152,8 +153,10 @@ func getHasher(name string) (hashFunc, error) {
 		return func(b []byte) uint64 { return wyhash.Hash(b, 0) }, nil
 	case "xxhash":
 		return xxhash.Sum64, nil
+	case "xxh3":
+		return xxh3.Hash, nil
 	default:
-		return nil, fmt.Errorf("invalid -hash value %q (use rapidhash|wyhash|xxhash)", name)
+		return nil, fmt.Errorf("invalid -hash value %q (use rapidhash|wyhash|xxhash|xxh3)", name)
 	}
 }
 
