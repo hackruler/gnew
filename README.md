@@ -12,10 +12,14 @@ Ensure `$GOPATH/bin` or `$HOME/go/bin` is in your `PATH`.
 
 ## Why
 
-- **Zero-copy for existing file**: The existing file is loaded once; lines are stored as (start,end) spans into that buffer. No 24M string allocations.
-- **xxHash**: 64-bit hashing at ~17 GB/s; collision chains stay short.
-- **Chunked new-line buffer**: New uniques are appended in 64 MiB chunks; no realloc so existing spans stay valid.
-- **Large I/O buffers**: 2 MiB read, 1 MiB write by default.
+- **Low RAM on huge files**: Existing file is scanned in streaming mode (no full-file load).
+- **Compact dedupe index**: Uses an open-addressed `uint64` hash set to avoid high-overhead maps of strings/spans.
+- **Fast hashing**: xxHash64 gives very high throughput and stable performance on large inputs.
+- **Buffered I/O**: Large scanner/writer buffers keep syscalls low.
+
+## Trade-off
+
+This implementation deduplicates by 64-bit hash (xxHash64), which is extremely unlikely to collide in practice, but not mathematically impossible. In return, memory usage is dramatically lower than exact byte-span indexing.
 
 ## Usage
 
