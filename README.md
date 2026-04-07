@@ -14,12 +14,12 @@ Ensure `$GOPATH/bin` or `$HOME/go/bin` is in your `PATH`.
 
 - **Low RAM on huge files**: Existing file is scanned in streaming mode (no full-file load).
 - **Compact dedupe index**: Uses an open-addressed `uint64` hash set to avoid high-overhead maps of strings/spans.
-- **Fast hashing**: xxHash64 gives very high throughput and stable performance on large inputs.
+- **Fast hashing**: XXH3 gives very high throughput and stable performance on large inputs.
 - **Buffered I/O**: Large scanner/writer buffers keep syscalls low.
 
 ## Trade-off
 
-This implementation deduplicates by 64-bit hash (xxHash64), which is extremely unlikely to collide in practice, but not mathematically impossible. In return, memory usage is dramatically lower than exact byte-span indexing.
+This implementation deduplicates by 64-bit hash (XXH3), which is extremely unlikely to collide in practice, but not mathematically impossible. In return, memory usage is dramatically lower than exact byte-span indexing.
 
 ## Usage
 
@@ -32,12 +32,6 @@ cat new_lines.txt | ./gnew existing.txt -o only_new.txt
 
 # Trim spaces when comparing (e.g. " foo " == "foo")
 cat new_lines.txt | ./gnew existing.txt -trim
-
-# Choose hash algorithm (default: rapidhash)
-cat new_lines.txt | ./gnew existing.txt -hash rapidhash
-cat new_lines.txt | ./gnew existing.txt -hash wyhash
-cat new_lines.txt | ./gnew existing.txt -hash xxhash
-cat new_lines.txt | ./gnew existing.txt -hash xxh3
 
 # Quiet: no output (only exit code)
 cat new_lines.txt | ./gnew existing.txt -q
@@ -56,7 +50,6 @@ go build -o gnew .
 | `existing-file` | Path to existing file (required). If missing, treated as empty. |
 | `-o`     | Output file. Default: same as existing file (append). |
 | `-trim`  | Trim spaces when comparing lines. |
-| `-hash`  | Hash algorithm: `rapidhash`, `wyhash`, `xxhash`, or `xxh3` (default: `rapidhash`). |
 | `-q`     | Quiet: no output (only exit code). |
 
 ## Output
