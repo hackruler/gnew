@@ -1,0 +1,6 @@
+# built binary (root)
+/gnew
+
+/go.sum
+
+.DS_Store
