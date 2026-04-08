@@ -54,4 +54,4 @@ go build -o gnew .
 
 ## Output
 
-By default, gnew prints only the **newly added lines** to stderr (one per line). Use `-q` to suppress all output.
+By default, gnew prints only the **newly added lines** to **stdout** (one per line), like `anew`, so you can redirect them (e.g. `echo x | gnew f >> captured.txt`). Use `-q` to suppress that stream.

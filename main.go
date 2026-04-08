@@ -79,8 +79,9 @@ func run(existingPath, outputPath string, trim, quiet bool) (int64, error) {
 		}
 		if set.AddHash(hashLine(line)) {
 			if showInserted {
-				_, _ = os.Stderr.Write(line)
-				_, _ = os.Stderr.Write([]byte{'\n'})
+				// stdout so `gnew f >> other` matches anew (redirection only captures stdout)
+				_, _ = os.Stdout.Write(line)
+				_, _ = os.Stdout.Write([]byte{'\n'})
 			}
 			_, _ = w.Write(line)
 			_ = w.WriteByte('\n')
